@@ -76,6 +76,13 @@ void playerUpdate(PlayerData* pData, unsigned long dt) {
   }
 }
 
+void playerResetIfDone(PlayerData* pData) {
+  if (pData->index == -1) {
+    pData->index = 0;
+  }
+}
+
+
 #if 0
 int main() {
     uint8_t data[][4] = {

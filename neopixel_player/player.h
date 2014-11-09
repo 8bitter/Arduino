@@ -47,3 +47,4 @@ uint8_t playerGetGreen(PlayerData* pData);
 uint8_t playerGetBlue(PlayerData* pData);
 
 void playerUpdate(PlayerData* pData, unsigned long dt);
+void playerResetIfDone(PlayerData* pData);
