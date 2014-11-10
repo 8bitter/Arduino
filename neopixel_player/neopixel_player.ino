@@ -8,7 +8,6 @@ extern "C" {
 
 #define NEOPIXEL_COUNT 4
 
-
 // Parameter 1 = number of pixels in strip
 // Parameter 2 = pin number (most are valid)
 // Parameter 3 = pixel type flags, add together as needed:
@@ -18,53 +17,57 @@ extern "C" {
 //   NEO_RGB     Pixels are wired for RGB bitstream (v1 FLORA pixels, not v2)
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(NEOPIXEL_COUNT, PIN, NEO_GRB + NEO_KHZ800);
 
-uint8_t NEO_0[][4] = {
-  { (uint8_t) 255, (uint8_t)   0, (uint8_t)   0, (uint8_t)   0 },
-  { (uint8_t) 255, (uint8_t)   0, (uint8_t)   0, (uint8_t) 250 },
-  { (uint8_t)   0, (uint8_t) 255, (uint8_t)   0, (uint8_t) 250 },
-  { (uint8_t)   0, (uint8_t)   0, (uint8_t) 255, (uint8_t) 250 },
-  { (uint8_t)   0, (uint8_t)   0, (uint8_t)   0, (uint8_t)   0 },
-  { (uint8_t)   0, (uint8_t)   0, (uint8_t)   0, (uint8_t) 255 },
+Note NEO_0[] = {
+  { 0, 255,   0,   0,    0 },
+  { 0, 255,   0,   0, 2500 },
+  { 0,   0, 255,   0, 2500 },
+  { 0,   0,   0, 255, 2500 },
+  { 0,   0,   0,   0, 2500 },
+  { 0,   0,   0,   0,   -1 },
 };
 
-uint8_t NEO_1[][4] = {
-  { (uint8_t) 128, (uint8_t) 128, (uint8_t)   0, (uint8_t)   0 },
-  { (uint8_t)   0, (uint8_t) 128, (uint8_t) 128, (uint8_t) 250 },
-  { (uint8_t) 128, (uint8_t) 128, (uint8_t)   0, (uint8_t) 250 },
-  { (uint8_t)   0, (uint8_t) 128, (uint8_t) 128, (uint8_t) 250 },
-  { (uint8_t) 128, (uint8_t) 128, (uint8_t)   0, (uint8_t) 250 },
-  { (uint8_t)   0, (uint8_t) 128, (uint8_t) 128, (uint8_t) 255 },
+Note NEO_1[] = {
+  { 0, 128, 128,   0,    0 },
+  { 0,   0, 128, 128, 2500 },
+  { 0, 128, 128,   0, 2500 },
+  { 0,   0, 128, 128, 2500 },
+  { 0, 128, 128,   0, 2500 },
+  { 0,   0, 128, 128,   -1 },
 };
 
-uint8_t NEO_2[][4] = {
-  { (uint8_t)   0, (uint8_t) 255, (uint8_t)   0, (uint8_t)   0 },
-  { (uint8_t)   0, (uint8_t)   0, (uint8_t) 255, (uint8_t) 250 },
-  { (uint8_t)   0, (uint8_t) 255, (uint8_t)   0, (uint8_t) 250 },
-  { (uint8_t)   0, (uint8_t)   0, (uint8_t) 255, (uint8_t) 250 },
-  { (uint8_t)   0, (uint8_t) 255, (uint8_t)   0, (uint8_t) 250 },
-  { (uint8_t)   0, (uint8_t)   0, (uint8_t)   0, (uint8_t) 255 },
+Note NEO_2[] = {
+  { 0,   0, 255,   0,    0 },
+  { 0,   0,   0, 255, 2500 },
+  { 0,   0, 255,   0, 2500 },
+  { 0,   0,   0, 255, 2500 },
+  { 0,   0, 255,   0, 2500 },
+  { 0,   0,   0,   0,   -1 },
 };
 
-uint8_t NEO_3[][4] = {
-  { (uint8_t) 255, (uint8_t) 255, (uint8_t)   0, (uint8_t)   0 },
-  { (uint8_t) 255, (uint8_t)   0, (uint8_t) 255, (uint8_t) 250 },
-  { (uint8_t) 255, (uint8_t) 255, (uint8_t)   0, (uint8_t) 250 },
-  { (uint8_t) 255, (uint8_t)   0, (uint8_t) 255, (uint8_t) 250 },
-  { (uint8_t) 255, (uint8_t) 255, (uint8_t)   0, (uint8_t) 250 },
-  { (uint8_t) 255, (uint8_t)   0, (uint8_t)   0, (uint8_t) 255 },
+Note NEO_3[] = {
+  { 0, 255, 255,   0,    0 },
+  { 0, 255,   0, 255, 2500 },
+  { 0, 255, 255,   0, 2500 },
+  { 0, 255,   0, 255, 2500 },
+  { 0, 255, 255,   0, 2500 },
+  { 0, 255,   0,   0,   -1 },
 };
 
 PlayerData players[4];
 unsigned long timestamp;
     
+#define PLAYERDATA_END (players + sizeof(players) / sizeof(*players))
+
 void setup() {
+  // Initialize all pixels to 'off'
   strip.begin();
-  strip.show(); // Initialize all pixels to 'off'
+  strip.clear();
+  strip.show();
   
   playerInitData(&players[0], 0, NEO_0);
-  playerInitData(&players[1], 0, NEO_1);
-  playerInitData(&players[2], 0, NEO_2);
-  playerInitData(&players[3], 0, NEO_3);
+  playerInitData(&players[1], 1, NEO_1);
+  playerInitData(&players[2], 2, NEO_2);
+  playerInitData(&players[3], 3, NEO_3);
   timestamp = millis();
 }
 
@@ -73,11 +76,10 @@ void loop() {
   unsigned long dt = now - timestamp;
   timestamp = now;
 
-  PlayerData* p = players;
-  for (uint16_t pixel = 0; pixel < strip.numPixels(); ++pixel, ++p) {
+  for (PlayerData* p = players; p < PLAYERDATA_END; ++p) {
     playerUpdate(p, dt);
     strip.setPixelColor(
-        pixel,
+        p->pixel,
         playerGetRed(p),
         playerGetGreen(p),
         playerGetBlue(p));

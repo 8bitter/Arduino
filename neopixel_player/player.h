@@ -3,11 +3,6 @@
 
 #define constrain(amt,low,high) ((amt)<(low)?(low):((amt)>(high)?(high):(amt)))
 
-#define R 0
-#define G 1
-#define B 2
-#define T 3
-
 typedef int32_t FIXED;
 
 #define FIXED_BITS        32
@@ -20,8 +15,17 @@ typedef int32_t FIXED;
 #define FIXED_DIV(a,b)    (((a) << FIXED_FBITS) / (b))
 
 typedef struct {
+  uint8_t br;      // brightness
+  uint8_t r;       // red
+  uint8_t g;       // green
+  uint8_t b;       // blue
+  int16_t msec;    // duration
+} Note;
+
+typedef struct {
   uint16_t pixel;
-  uint8_t (*data)[4];
+  Note* pOrigNote;
+  Note* pNote;
 
   FIXED r;
   FIXED g;
@@ -35,12 +39,11 @@ typedef struct {
   FIXED g1;
   FIXED b1;
 
-  int index;
   FIXED t;
   FIXED elapsedMsec;
 } PlayerData;
 
-void playerInitData(PlayerData* pData, uint16_t pixel, uint8_t (*data)[4]);
+void playerInitData(PlayerData* pData, uint16_t pixel, Note* pNote);
 
 uint8_t playerGetRed(PlayerData* pData);
 uint8_t playerGetGreen(PlayerData* pData);
