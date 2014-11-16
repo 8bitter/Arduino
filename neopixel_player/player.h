@@ -1,6 +1,9 @@
 #define __STDC_FORMAT_MACROS
 #include <inttypes.h>
 
+#include <avr/pgmspace.h>
+
+
 #define constrain(amt,low,high) ((amt)<(low)?(low):((amt)>(high)?(high):(amt)))
 
 typedef int32_t FIXED;
@@ -24,7 +27,7 @@ typedef struct {
 
 typedef struct {
   uint16_t pixel;
-  Note* pOrigNote;
+  Note* pNotes;
   Note* pNote;
 
   FIXED r;

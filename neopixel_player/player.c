@@ -8,20 +8,25 @@
 #include "player.h"
 
 void playerInitData(PlayerData* pData, uint16_t pixel, Note* pNote) {
+  Note note;
+  
   pData->pixel = pixel;
-  pData->pOrigNote = pNote;
-  pData->pNote = pNote;
+  pData->pNotes = pData->pNote = pNote;
 
-  pData->r = pData->r0 = FIXED_MAKE(pData->pNote->r);
-  pData->g = pData->g0 = FIXED_MAKE(pData->pNote->g);
-  pData->b = pData->b0 = FIXED_MAKE(pData->pNote->b);
+  memcpy_P(&note, pData->pNote, sizeof(note));
+
+  pData->r = pData->r0 = FIXED_MAKE(note.r);
+  pData->g = pData->g0 = FIXED_MAKE(note.g);
+  pData->b = pData->b0 = FIXED_MAKE(note.b);
 
   ++pData->pNote;
-  pData->r1 = FIXED_MAKE(pData->pNote->r);
-  pData->g1 = FIXED_MAKE(pData->pNote->g);
-  pData->b1 = FIXED_MAKE(pData->pNote->b);
+  memcpy_P(&note, pData->pNote, sizeof(note));
 
-  pData->t = FIXED_MAKE(pData->pNote->msec);
+  pData->r1 = FIXED_MAKE(note.r);
+  pData->g1 = FIXED_MAKE(note.g);
+  pData->b1 = FIXED_MAKE(note.b);
+  pData->t = FIXED_MAKE(note.msec);
+
   pData->elapsedMsec = 0;
 }
 
@@ -42,13 +47,14 @@ FIXED lerp(FIXED v0, FIXED v1, FIXED t) {
 }
 
 void playerUpdate(PlayerData* pData, unsigned long dt) {
+  Note note;
+  
   if (pData->pNote == 0) {
     // end of data reached
     return;
   }
   
   pData->elapsedMsec += FIXED_MAKE(dt);
-
   if (pData->elapsedMsec < pData->t) {
     dprintf(
         "interpolate: elapsedMsec=%d t=%d\n",
@@ -63,31 +69,26 @@ void playerUpdate(PlayerData* pData, unsigned long dt) {
     while (pData->elapsedMsec >= pData->t) {
       // advance index and see if end of data reached
       ++pData->pNote;
+      memcpy_P(&note, pData->pNote, sizeof(note));
 
-      dprintf(
-          "----------------: elapsedMsec=%d t=%d msec=%d\n",
-          FIXED_TO_INT(pData->elapsedMsec),
-          FIXED_TO_INT(pData->t),
-          pData->pNote->msec);
-
-      if (pData->pNote->msec < 0) {
+      if (note.msec < 0) {
         // set the final color
         pData->r = pData->r1;
         pData->g = pData->g1;
         pData->b = pData->b1;
-        pData->pNote = 0;
-        return;
+	pData->pNote = 0;
+	return;
       }
 
       pData->r = pData->r0 = pData->r1;
       pData->g = pData->g0 = pData->g1;
       pData->b = pData->b0 = pData->b1;
 
-      pData->r1 = FIXED_MAKE(pData->pNote->r);
-      pData->g1 = FIXED_MAKE(pData->pNote->g);
-      pData->b1 = FIXED_MAKE(pData->pNote->b);
+      pData->r1 = FIXED_MAKE(note.r);
+      pData->g1 = FIXED_MAKE(note.g);
+      pData->b1 = FIXED_MAKE(note.b);
 
-      pData->t = FIXED_MAKE(pData->pNote->msec);
+      pData->t = FIXED_MAKE(note.msec);
       pData->elapsedMsec -= pData->t;
     }
   }
@@ -95,75 +96,39 @@ void playerUpdate(PlayerData* pData, unsigned long dt) {
 
 void playerResetIfDone(PlayerData* pData) {
   if (pData->pNote == 0) {
-    pData->pNote = pData->pOrigNote;
+    pData->pNote = pData->pNotes;
   }
 }
 
-#ifndef ARDUINO
+
+#if 0
+#include <stdio.h>
+
 int main() {
-  Note NEO_0[] = {
-    { 0, 255,   0,   0,    0 },
-    { 0, 255,   0,   0, 2500 },
-    { 0,   0, 255,   0, 2500 },
-    { 0,   0,   0, 255, 2500 },
-    { 0,   0,   0,   0, 2500 },
-    { 0,   0,   0,   0,   -1 },
+  Note notes[] = {
+    { 255, 255,   0,   0,   0 },
+    { 255,   0, 255, 128,  15 },
+    { 255, 255,   0,   0,  15 },
+    { 255,   0, 255, 128,  15 },
+    { 255, 255,   0,   0,  -1 },
   };
 
-  Note NEO_1[] = {
-    { 0, 128, 128,   0,    0 },
-    { 0,   0, 128, 128, 2500 },
-    { 0, 128, 128,   0, 2500 },
-    { 0,   0, 128, 128, 2500 },
-    { 0, 128, 128,   0, 2500 },
-    { 0,   0, 128, 128,   -1 },
-  };
+  PlayerData player;
+  playerInitData(&player, 0, notes);
 
-  Note NEO_2[] = {
-    { 0,   0, 255,   0,    0 },
-    { 0,   0,   0, 255, 2500 },
-    { 0,   0, 255,   0, 2500 },
-    { 0,   0,   0, 255, 2500 },
-    { 0,   0, 255,   0, 2500 },
-    { 0,   0,   0,   0,   -1 },
-  };
-
-  Note NEO_3[] = {
-    { 0, 255, 255,   0,    0 },
-    { 0, 255,   0, 255, 2500 },
-    { 0, 255, 255,   0, 2500 },
-    { 0, 255,   0, 255, 2500 },
-    { 0, 255, 255,   0, 2500 },
-    { 0, 255,   0,   0,   -1 },
-  };
-
-  PlayerData players[4];
-  unsigned long timestamp;
-
-  #define PLAYERDATA_END (players + sizeof(players) / sizeof(*players))
-
-  playerInitData(players + 0, 0, NEO_0);
-  playerInitData(players + 1, 1, NEO_1);
-  playerInitData(players + 2, 2, NEO_2);
-  playerInitData(players + 3, 3, NEO_3);
-
-  timestamp = 0;
-
-  int loop;
-  for (loop = 0; loop < 200; ++loop) {
-    unsigned long now = loop * 100;
-    unsigned long dt = now - timestamp;
-    timestamp = now;
-
-    PlayerData* p;
-    for (p = players; p < PLAYERDATA_END; ++p) {
-      playerUpdate(p, dt);
-      dprintf("%d: rgb=(%d, %d, %d) pNote=%08lx pOrigNote=%08lx\n",
-              p->pixel, playerGetRed(p), playerGetGreen(p), playerGetBlue(p), p->pNote, p->pOrigNote);
-      playerResetIfDone(p);
-    }
+  int idx;
+  for (idx = 0; idx < 30; ++idx) {
+    playerUpdate(&player, 5);
+    printf(
+        "%3d: pixel=%d rgb=(%3d,%3d,%3d) pNote=%ld\n",
+        idx,
+        player.pixel,
+        playerGetRed(&player),
+        playerGetGreen(&player),
+        playerGetBlue(&player),
+        player.pNote == 0 ? -1 : player.pNote - player.pNotes);
+    playerResetIfDone(&player);
   }
-
   return 0;
 }
 #endif
